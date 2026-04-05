@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flashcard App</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-container">
+
+    <aside class="sidebar">
+      <h1 class="sidebar-title">Flashcard Set</h1>
+
+      <div class="group-list" id="groupList">
+        <button class="group-item active">Group 1</button>
+      </div>
+
+      <div class="sidebar-actions">
+        <button id="addGroupBtn">Add Group</button>
+        <button id="removeGroupBtn">Remove Group</button>
+      </div>
+
+      <div class="add-group-panel hidden" id="addGroupPanel">
+        <label for="groupNameInput">Group name:</label>
+        <input type="text" id="groupNameInput">
+        <button id="doneAddGroupBtn">Done</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+
+      <section id="studyView">
+        <div class="top-bar">
+          <button id="editSetBtn">Edit</button>
+        </div>
+
+        <div class="view-center">
+          <div class="flashcard" id="flashcard">
+            <p id="cardLabel">Q1:</p>
+            <p id="cardText">What is xxxx</p>
+          </div>
+
+          <div class="bottom-bar">
+            <button id="prevBtn">Previous</button>
+            <span id="progressText">1 of 1</span>
+            <button id="nextBtn">Next</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="hidden" id="listView">
+        <div class="top-bar">
+          <button id="backFromListBtn">Back</button>
+          <button id="addCardBtn">Add</button>
+        </div>
+
+        <div id="questionListPanel">
+          <div class="question-item">
+            <span>Q1 : What is xxxx</span>
+            <div>
+              <button>Edit</button>
+              <button>Delete</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="hidden" id="addCardView">
+        <div class="top-bar">
+          <button id="backFromAddBtn">Back</button>
+          <button id="doneAddCardBtn">Done</button>
+        </div>
+
+        <div class="view-center">
+          <div class="card-form">
+            <label for="questionInput">Question:</label>
+            <textarea id="questionInput"></textarea>
+
+            <label for="answerInput">Answer:</label>
+            <input type="text" id="answerInput">
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
