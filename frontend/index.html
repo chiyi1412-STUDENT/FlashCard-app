@@ -12,8 +12,13 @@
     <aside class="sidebar">
       <h1 class="sidebar-title">Flashcard Set</h1>
 
+      <div class="sidebar-divider"></div>
+
       <div class="group-list" id="groupList">
-        <button class="group-item active">Group 1</button>
+        <button class="group-item active">
+          <span class="group-name">Group 1</span>
+          <span class="group-color group-color-1"></span>
+        </button>
       </div>
 
       <div class="sidebar-actions">
@@ -23,7 +28,7 @@
 
       <div class="add-group-panel hidden" id="addGroupPanel">
         <label for="groupNameInput">Group name:</label>
-        <input type="text" id="groupNameInput">
+        <input type="text" id="groupNameInput" placeholder="Enter group name">
         <button id="doneAddGroupBtn">Done</button>
       </div>
     </aside>
@@ -60,7 +65,7 @@
             <span>Q1 : What is xxxx</span>
             <div>
               <button>Edit</button>
-              <button>Delete</button>
+              <button class="delete-btn">Delete</button>
             </div>
           </div>
         </div>
@@ -75,15 +80,29 @@
         <div class="view-center">
           <div class="card-form">
             <label for="questionInput">Question:</label>
-            <textarea id="questionInput"></textarea>
+            <textarea id="questionInput" placeholder="Enter your question"></textarea>
 
             <label for="answerInput">Answer:</label>
-            <input type="text" id="answerInput">
+            <input type="text" id="answerInput" placeholder="Enter your answer">
           </div>
         </div>
       </section>
 
     </main>
+
+    <!-- Custom Confirm Modal -->
+    <div class="modal-overlay hidden" id="confirmModal">
+      <div class="modal-box">
+        <h3 class="modal-title">Confirm Deletion</h3>
+        <p class="modal-message" id="modalMessage">Are you sure you want to delete this item?</p>
+
+        <div class="modal-actions">
+          <button class="modal-btn modal-cancel" id="modalCancelBtn">Cancel</button>
+          <button class="modal-btn modal-confirm" id="modalConfirmBtn">Delete</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script src="js/script.js"></script>

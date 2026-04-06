@@ -28,9 +28,22 @@ const questionListPanel = document.getElementById("questionListPanel");
 const questionInput = document.getElementById("questionInput");
 const answerInput = document.getElementById("answerInput");
 
+const confirmModal = document.getElementById("confirmModal");
+const modalMessage = document.getElementById("modalMessage");
+const modalCancelBtn = document.getElementById("modalCancelBtn");
+const modalConfirmBtn = document.getElementById("modalConfirmBtn");
+
+const groupColors = [
+  "group-color-1",
+  "group-color-2",
+  "group-color-3",
+  "group-color-4"
+];
+
 let groups = [
   {
     name: "Group 1",
+    colorClass: "group-color-1",
     cards: [
       {
         question: "What is xxxx",
@@ -44,6 +57,22 @@ let currentGroupIndex = 0;
 let currentCardIndex = 0;
 let editCardIndex = null;
 let showingAnswer = false;
+let confirmAction = null;
+let isFlipping = false;
+
+const cardHint = document.createElement("div");
+cardHint.className = "card-hint";
+flashcard.appendChild(cardHint);
+
+function updateCardHint() {
+  if (showingAnswer) {
+    cardHint.textContent = "Answer side";
+    flashcard.classList.add("answer-mode");
+  } else {
+    cardHint.textContent = "Click to view answer";
+    flashcard.classList.remove("answer-mode");
+  }
+}
 
 function showView(view) {
   studyView.classList.add("hidden");
@@ -51,6 +80,32 @@ function showView(view) {
   addCardView.classList.add("hidden");
   view.classList.remove("hidden");
 }
+
+function openConfirmModal(message, onConfirm) {
+  modalMessage.textContent = message;
+  confirmAction = onConfirm;
+  confirmModal.classList.remove("hidden");
+}
+
+function closeConfirmModal() {
+  confirmModal.classList.add("hidden");
+  confirmAction = null;
+}
+
+modalCancelBtn.addEventListener("click", closeConfirmModal);
+
+modalConfirmBtn.addEventListener("click", () => {
+  if (confirmAction) {
+    confirmAction();
+  }
+  closeConfirmModal();
+});
+
+confirmModal.addEventListener("click", (event) => {
+  if (event.target === confirmModal) {
+    closeConfirmModal();
+  }
+});
 
 function renderGroupList() {
   groupList.innerHTML = "";
@@ -63,7 +118,15 @@ function renderGroupList() {
       button.classList.add("active");
     }
 
-    button.textContent = group.name;
+    const nameSpan = document.createElement("span");
+    nameSpan.className = "group-name";
+    nameSpan.textContent = group.name;
+
+    const colorDot = document.createElement("span");
+    colorDot.className = `group-color ${group.colorClass}`;
+
+    button.appendChild(nameSpan);
+    button.appendChild(colorDot);
 
     button.addEventListener("click", () => {
       currentGroupIndex = index;
@@ -87,6 +150,8 @@ function renderStudyCard() {
     cardLabel.textContent = "No Card";
     cardText.textContent = "Please add a new card.";
     progressText.textContent = "0 of 0";
+    flashcard.classList.remove("answer-mode");
+    cardHint.textContent = "Add a card first";
     return;
   }
 
@@ -101,6 +166,7 @@ function renderStudyCard() {
   }
 
   progressText.textContent = `${currentCardIndex + 1} of ${cards.length}`;
+  updateCardHint();
 }
 
 function renderListView() {
@@ -110,9 +176,27 @@ function renderListView() {
   questionListPanel.innerHTML = "";
 
   if (cards.length === 0) {
+    const emptyState = document.createElement("div");
+    emptyState.className = "empty-state";
+
     const emptyText = document.createElement("p");
     emptyText.textContent = "No cards in this group.";
-    questionListPanel.appendChild(emptyText);
+
+    const emptyAddBtn = document.createElement("button");
+    emptyAddBtn.textContent = "Add Your First Card";
+    emptyAddBtn.className = "empty-add-btn";
+
+    emptyAddBtn.addEventListener("click", () => {
+      editCardIndex = null;
+      questionInput.value = "";
+      answerInput.value = "";
+      showView(addCardView);
+    });
+
+    emptyState.appendChild(emptyText);
+    emptyState.appendChild(emptyAddBtn);
+
+    questionListPanel.appendChild(emptyState);
     return;
   }
 
@@ -136,16 +220,19 @@ function renderListView() {
 
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "Delete";
+    deleteBtn.className = "delete-btn";
     deleteBtn.addEventListener("click", () => {
-      currentGroup.cards.splice(index, 1);
+      openConfirmModal(`Delete Q${index + 1}?`, () => {
+        currentGroup.cards.splice(index, 1);
 
-      if (currentCardIndex >= currentGroup.cards.length) {
-        currentCardIndex = Math.max(0, currentGroup.cards.length - 1);
-      }
+        if (currentCardIndex >= currentGroup.cards.length) {
+          currentCardIndex = Math.max(0, currentGroup.cards.length - 1);
+        }
 
-      showingAnswer = false;
-      renderStudyCard();
-      renderListView();
+        showingAnswer = false;
+        renderStudyCard();
+        renderListView();
+      });
     });
 
     buttonWrapper.appendChild(editBtn);
@@ -158,13 +245,25 @@ function renderListView() {
   });
 }
 
-flashcard.addEventListener("click", () => {
+function flipCard() {
   const currentGroup = groups[currentGroupIndex];
-  if (currentGroup.cards.length === 0) return;
+  if (currentGroup.cards.length === 0 || isFlipping) return;
 
-  showingAnswer = !showingAnswer;
-  renderStudyCard();
-});
+  isFlipping = true;
+  flashcard.classList.add("is-flipping");
+
+  setTimeout(() => {
+    showingAnswer = !showingAnswer;
+    renderStudyCard();
+  }, 300);
+
+  setTimeout(() => {
+    flashcard.classList.remove("is-flipping");
+    isFlipping = false;
+  }, 600);
+}
+
+flashcard.addEventListener("click", flipCard);
 
 editSetBtn.addEventListener("click", () => {
   renderListView();
@@ -255,8 +354,11 @@ doneAddGroupBtn.addEventListener("click", () => {
     return;
   }
 
+  const nextColorClass = groupColors[groups.length % groupColors.length];
+
   groups.push({
     name: groupName,
+    colorClass: nextColorClass,
     cards: []
   });
 
@@ -269,7 +371,7 @@ doneAddGroupBtn.addEventListener("click", () => {
   renderGroupList();
   renderStudyCard();
   renderListView();
-  showView(studyView);
+  showView(listView);
 });
 
 removeGroupBtn.addEventListener("click", () => {
@@ -278,15 +380,17 @@ removeGroupBtn.addEventListener("click", () => {
     return;
   }
 
-  groups.splice(currentGroupIndex, 1);
-  currentGroupIndex = 0;
-  currentCardIndex = 0;
-  showingAnswer = false;
+  openConfirmModal(`Delete group "${groups[currentGroupIndex].name}"?`, () => {
+    groups.splice(currentGroupIndex, 1);
+    currentGroupIndex = 0;
+    currentCardIndex = 0;
+    showingAnswer = false;
 
-  renderGroupList();
-  renderStudyCard();
-  renderListView();
-  showView(studyView);
+    renderGroupList();
+    renderStudyCard();
+    renderListView();
+    showView(studyView);
+  });
 });
 
 renderGroupList();
