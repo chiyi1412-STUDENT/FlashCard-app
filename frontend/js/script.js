@@ -1,3 +1,35 @@
+/*
+Flashcard Web App - Frontend Logic Structure
+
+1. View Control
+   - showView()
+   - studyView / listView / addCardView
+
+2. Group Functions (connected to backend)
+   - loadGroups()        -> GET /groups
+   - Add Group           -> POST /groups
+   - Delete Group        -> DELETE /groups/{id}
+
+3. Card Functions (connected to backend)
+   - loadCards(groupId)  -> GET /groups/{id}/cards
+   - Add Card            -> POST /cards
+   - Edit Card           -> PUT /cards/{id}
+   - Delete Card         -> DELETE /cards/{id}
+
+4. UI Rendering
+   - renderGroupList()
+   - renderStudyCard()
+   - renderListView()
+
+5. Card Interaction
+   - flipCard()
+   - prev / next card
+
+6. Modal (confirmation popup)
+   - openConfirmModal()
+   - closeConfirmModal()
+*/
+
 const studyView = document.getElementById("studyView");
 const listView = document.getElementById("listView");
 const addCardView = document.getElementById("addCardView");
@@ -40,7 +72,6 @@ const groupColors = [
   "group-color-4"
 ];
 
-// Groups data (loaded from backend)
 let groups = [];
 
 let currentGroupIndex = 0;
@@ -84,9 +115,9 @@ function closeConfirmModal() {
 
 modalCancelBtn.addEventListener("click", closeConfirmModal);
 
-modalConfirmBtn.addEventListener("click", () => {
+modalConfirmBtn.addEventListener("click", async () => {
   if (confirmAction) {
-    confirmAction();
+    await confirmAction();
   }
   closeConfirmModal();
 });
@@ -96,6 +127,48 @@ confirmModal.addEventListener("click", (event) => {
     closeConfirmModal();
   }
 });
+
+async function loadGroups() {
+  const response = await fetch("http://127.0.0.1:8000/groups");
+  const data = await response.json();
+
+  groups = data.map((g, index) => ({
+    id: g.id,
+    name: g.name,
+    colorClass: groupColors[index % groupColors.length],
+    cards: []
+  }));
+
+  if (groups.length === 0) {
+    currentGroupIndex = 0;
+    currentCardIndex = 0;
+    renderGroupList();
+    renderStudyCard();
+    renderListView();
+    return;
+  }
+
+  if (currentGroupIndex >= groups.length) {
+    currentGroupIndex = 0;
+  }
+
+  await loadCards(groups[currentGroupIndex].id);
+
+  renderGroupList();
+  renderStudyCard();
+  renderListView();
+}
+
+async function loadCards(groupId) {
+  const response = await fetch(`http://127.0.0.1:8000/groups/${groupId}/cards`);
+  const data = await response.json();
+
+  groups[currentGroupIndex].cards = data;
+
+  if (currentCardIndex >= groups[currentGroupIndex].cards.length) {
+    currentCardIndex = Math.max(0, groups[currentGroupIndex].cards.length - 1);
+  }
+}
 
 function renderGroupList() {
   groupList.innerHTML = "";
@@ -122,11 +195,18 @@ function renderGroupList() {
   currentGroupIndex = index;
   currentCardIndex = 0;
   showingAnswer = false;
+
   await loadCards(groups[index].id);
+
   renderGroupList();
   renderStudyCard();
   renderListView();
-  showView(studyView);
+
+  if (groups[currentGroupIndex].cards.length > 0) {
+    showView(studyView);
+  } else {
+    showView(listView);
+  }
 });
 
     groupList.appendChild(button);
@@ -134,15 +214,20 @@ function renderGroupList() {
 }
 
 function renderStudyCard() {
+  if (groups.length === 0) {
+    cardLabel.textContent = "No Group";
+    cardText.textContent = "Please add a new group.";
+    progressText.textContent = "0 of 0";
+    flashcard.classList.remove("answer-mode");
+    cardHint.textContent = "Add a group first";
+    return;
+  }
+
   const currentGroup = groups[currentGroupIndex];
   const cards = currentGroup.cards;
 
   if (cards.length === 0) {
-    cardLabel.textContent = "No Card";
-    cardText.textContent = "Please add a new card.";
-    progressText.textContent = "0 of 0";
-    flashcard.classList.remove("answer-mode");
-    cardHint.textContent = "Add a card first";
+    showView(listView);
     return;
   }
 
@@ -161,10 +246,22 @@ function renderStudyCard() {
 }
 
 function renderListView() {
+  questionListPanel.innerHTML = "";
+
+  if (groups.length === 0) {
+    const emptyState = document.createElement("div");
+    emptyState.className = "empty-state";
+
+    const emptyText = document.createElement("p");
+    emptyText.textContent = "No group available.";
+
+    emptyState.appendChild(emptyText);
+    questionListPanel.appendChild(emptyState);
+    return;
+  }
+
   const currentGroup = groups[currentGroupIndex];
   const cards = currentGroup.cards;
-
-  questionListPanel.innerHTML = "";
 
   if (cards.length === 0) {
     const emptyState = document.createElement("div");
@@ -186,7 +283,6 @@ function renderListView() {
 
     emptyState.appendChild(emptyText);
     emptyState.appendChild(emptyAddBtn);
-
     questionListPanel.appendChild(emptyState);
     return;
   }
@@ -213,24 +309,14 @@ function renderListView() {
     deleteBtn.textContent = "Delete";
     deleteBtn.className = "delete-btn";
     deleteBtn.addEventListener("click", () => {
-      openConfirmModal(`Delete Q${index + 1}?`, () => {
-        openConfirmModal(`Delete Q${index + 1}?`, async () => {
-  const cardId = currentGroup.cards[index].id;
+      openConfirmModal(`Delete Q${index + 1}?`, async () => {
+        const cardId = currentGroup.cards[index].id;
 
-  await fetch(`http://127.0.0.1:8000/cards/${cardId}`, {
-    method: "DELETE"
-  });
+        await fetch(`http://127.0.0.1:8000/cards/${cardId}`, {
+          method: "DELETE"
+        });
 
-  await loadCards(currentGroup.id);
-
-  if (currentCardIndex >= currentGroup.cards.length) {
-    currentCardIndex = Math.max(0, currentGroup.cards.length - 1);
-  }
-
-  showingAnswer = false;
-  renderStudyCard();
-  renderListView();
-});
+        await loadCards(currentGroup.id);
 
         if (currentCardIndex >= currentGroup.cards.length) {
           currentCardIndex = Math.max(0, currentGroup.cards.length - 1);
@@ -253,6 +339,8 @@ function renderListView() {
 }
 
 function flipCard() {
+  if (groups.length === 0) return;
+
   const currentGroup = groups[currentGroupIndex];
   if (currentGroup.cards.length === 0 || isFlipping) return;
 
@@ -295,19 +383,12 @@ backFromAddBtn.addEventListener("click", () => {
   showView(listView);
 });
 
-doneAddCardBtn.addEventListener("click", () => {
-  const questionValue = questionInput.value.trim();
-  const answerValue = answerInput.value.trim();
-
-  if (questionValue === "" || answerValue === "") {
-    alert("Please enter both question and answer.");
+doneAddCardBtn.addEventListener("click", async () => {
+  if (groups.length === 0) {
+    alert("Please add a group first.");
     return;
   }
 
-  const currentGroup = groups[currentGroupIndex];
-
-  if (editCardIndex === null) {
-    doneAddCardBtn.addEventListener("click", async () => {
   const questionValue = questionInput.value.trim();
   const answerValue = answerInput.value.trim();
 
@@ -319,7 +400,6 @@ doneAddCardBtn.addEventListener("click", () => {
   const groupId = groups[currentGroupIndex].id;
 
   if (editCardIndex === null) {
-    // Create card
     await fetch("http://127.0.0.1:8000/cards", {
       method: "POST",
       headers: {
@@ -332,7 +412,6 @@ doneAddCardBtn.addEventListener("click", () => {
       })
     });
   } else {
-    // Update card
     const cardId = groups[currentGroupIndex].cards[editCardIndex].id;
 
     await fetch(`http://127.0.0.1:8000/cards/${cardId}`, {
@@ -349,6 +428,7 @@ doneAddCardBtn.addEventListener("click", () => {
 
   editCardIndex = null;
   showingAnswer = false;
+  currentCardIndex = 0;
 
   await loadCards(groupId);
 
@@ -356,23 +436,10 @@ doneAddCardBtn.addEventListener("click", () => {
   renderListView();
   showView(listView);
 });
-    currentCardIndex = currentGroup.cards.length - 1;
-  } else {
-    currentGroup.cards[editCardIndex] = {
-      question: questionValue,
-      answer: answerValue
-    };
-    currentCardIndex = editCardIndex;
-  }
-
-  editCardIndex = null;
-  showingAnswer = false;
-  renderStudyCard();
-  renderListView();
-  showView(listView);
-});
 
 prevBtn.addEventListener("click", () => {
+  if (groups.length === 0) return;
+
   const currentGroup = groups[currentGroupIndex];
   if (currentGroup.cards.length === 0) return;
 
@@ -384,6 +451,8 @@ prevBtn.addEventListener("click", () => {
 });
 
 nextBtn.addEventListener("click", () => {
+  if (groups.length === 0) return;
+
   const currentGroup = groups[currentGroupIndex];
   if (currentGroup.cards.length === 0) return;
 
@@ -398,7 +467,7 @@ addGroupBtn.addEventListener("click", () => {
   addGroupPanel.classList.remove("hidden");
 });
 
-doneAddGroupBtn.addEventListener("click", async() => {
+doneAddGroupBtn.addEventListener("click", async () => {
   const groupName = groupNameInput.value.trim();
 
   if (groupName === "") {
@@ -406,7 +475,6 @@ doneAddGroupBtn.addEventListener("click", async() => {
     return;
   }
 
-  // send request to backend
   await fetch("http://127.0.0.1:8000/groups", {
     method: "POST",
     headers: {
@@ -418,23 +486,32 @@ doneAddGroupBtn.addEventListener("click", async() => {
   });
 
   groupNameInput.value = "";
-  addGroupPanel.classList.add("hidden")
+  addGroupPanel.classList.add("hidden");
 
-  //reload groups from backend
-   loadGroups();
+  const response = await fetch("http://127.0.0.1:8000/groups");
+  const data = await response.json();
 
+  groups = data.map((g, index) => ({
+    id: g.id,
+    name: g.name,
+    colorClass: groupColors[index % groupColors.length],
+    cards: []
+  }));
+
+  currentGroupIndex = groups.length - 1;
+  currentCardIndex = 0;
+  showingAnswer = false;
+
+  await loadCards(groups[currentGroupIndex].id);
+
+  renderGroupList();
+  renderStudyCard();
+  renderListView();
   showView(listView);
 });
 
 removeGroupBtn.addEventListener("click", () => {
-  if (groups.length === 1) {
-    alert("At least one group must remain.");
-    return;
-  }
-
-  openConfirmModal(`Delete group "${groups[currentGroupIndex].name}"?`, () => {
-   removeGroupBtn.addEventListener("click", () => {
-  if (groups.length === 1) {
+  if (groups.length <= 1) {
     alert("At least one group must remain.");
     return;
   }
@@ -450,17 +527,7 @@ removeGroupBtn.addEventListener("click", () => {
     currentCardIndex = 0;
     showingAnswer = false;
 
-    loadGroups();
-    showView(studyView);
-  });
-});
-    currentGroupIndex = 0;
-    currentCardIndex = 0;
-    showingAnswer = false;
-
-    renderGroupList();
-    renderStudyCard();
-    renderListView();
+    await loadGroups();
     showView(studyView);
   });
 });
@@ -470,30 +537,4 @@ renderStudyCard();
 renderListView();
 showView(studyView);
 
-// link backend and frontend
-async function loadGroups() {
-  const response = await fetch("http://127.0.0.1:8000/groups");
-  const data = await response.json();
-
-  // backend data exchange to frontend
-  groups = data.map((g, index) => ({
-    id: g.id,
-    name: g.name,
-    colorClass: groupColors[index % groupColors.length],
-    cards: []
-  }));
-
-  renderGroupList();
-  renderStudyCard();
-  renderListView();
-}
-
 loadGroups();
-
-// Load cards for selected group
-async function loadCards(groupId) {
-  const response = await fetch(`http://127.0.0.1:8000/groups/${groupId}/cards`);
-  const data = await response.json();
-
-  groups[currentGroupIndex].cards = data;
-}

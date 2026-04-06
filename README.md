@@ -1,2 +1,4 @@
-# FlashCard app
-Flashcard Learning App: An application that allows users to create questions as flashcards and click to see answers. 
+Name: Jiaqi Chen
+Student ID: 13002718
+Subject: XXXX
+Assignment: Flashcard Web App
