@@ -40,18 +40,8 @@ const groupColors = [
   "group-color-4"
 ];
 
-let groups = [
-  {
-    name: "Group 1",
-    colorClass: "group-color-1",
-    cards: [
-      {
-        question: "What is xxxx",
-        answer: "abc"
-      }
-    ]
-  }
-];
+// Groups data (loaded from backend)
+let groups = [];
 
 let currentGroupIndex = 0;
 let currentCardIndex = 0;
@@ -128,15 +118,16 @@ function renderGroupList() {
     button.appendChild(nameSpan);
     button.appendChild(colorDot);
 
-    button.addEventListener("click", () => {
-      currentGroupIndex = index;
-      currentCardIndex = 0;
-      showingAnswer = false;
-      renderGroupList();
-      renderStudyCard();
-      renderListView();
-      showView(studyView);
-    });
+    button.addEventListener("click", async () => {
+  currentGroupIndex = index;
+  currentCardIndex = 0;
+  showingAnswer = false;
+  await loadCards(groups[index].id);
+  renderGroupList();
+  renderStudyCard();
+  renderListView();
+  showView(studyView);
+});
 
     groupList.appendChild(button);
   });
@@ -223,7 +214,23 @@ function renderListView() {
     deleteBtn.className = "delete-btn";
     deleteBtn.addEventListener("click", () => {
       openConfirmModal(`Delete Q${index + 1}?`, () => {
-        currentGroup.cards.splice(index, 1);
+        openConfirmModal(`Delete Q${index + 1}?`, async () => {
+  const cardId = currentGroup.cards[index].id;
+
+  await fetch(`http://127.0.0.1:8000/cards/${cardId}`, {
+    method: "DELETE"
+  });
+
+  await loadCards(currentGroup.id);
+
+  if (currentCardIndex >= currentGroup.cards.length) {
+    currentCardIndex = Math.max(0, currentGroup.cards.length - 1);
+  }
+
+  showingAnswer = false;
+  renderStudyCard();
+  renderListView();
+});
 
         if (currentCardIndex >= currentGroup.cards.length) {
           currentCardIndex = Math.max(0, currentGroup.cards.length - 1);
@@ -300,10 +307,55 @@ doneAddCardBtn.addEventListener("click", () => {
   const currentGroup = groups[currentGroupIndex];
 
   if (editCardIndex === null) {
-    currentGroup.cards.push({
-      question: questionValue,
-      answer: answerValue
+    doneAddCardBtn.addEventListener("click", async () => {
+  const questionValue = questionInput.value.trim();
+  const answerValue = answerInput.value.trim();
+
+  if (questionValue === "" || answerValue === "") {
+    alert("Please enter both question and answer.");
+    return;
+  }
+
+  const groupId = groups[currentGroupIndex].id;
+
+  if (editCardIndex === null) {
+    // Create card
+    await fetch("http://127.0.0.1:8000/cards", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        group_id: groupId,
+        question: questionValue,
+        answer: answerValue
+      })
     });
+  } else {
+    // Update card
+    const cardId = groups[currentGroupIndex].cards[editCardIndex].id;
+
+    await fetch(`http://127.0.0.1:8000/cards/${cardId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        question: questionValue,
+        answer: answerValue
+      })
+    });
+  }
+
+  editCardIndex = null;
+  showingAnswer = false;
+
+  await loadCards(groupId);
+
+  renderStudyCard();
+  renderListView();
+  showView(listView);
+});
     currentCardIndex = currentGroup.cards.length - 1;
   } else {
     currentGroup.cards[editCardIndex] = {
@@ -346,7 +398,7 @@ addGroupBtn.addEventListener("click", () => {
   addGroupPanel.classList.remove("hidden");
 });
 
-doneAddGroupBtn.addEventListener("click", () => {
+doneAddGroupBtn.addEventListener("click", async() => {
   const groupName = groupNameInput.value.trim();
 
   if (groupName === "") {
@@ -354,23 +406,23 @@ doneAddGroupBtn.addEventListener("click", () => {
     return;
   }
 
-  const nextColorClass = groupColors[groups.length % groupColors.length];
-
-  groups.push({
-    name: groupName,
-    colorClass: nextColorClass,
-    cards: []
+  // send request to backend
+  await fetch("http://127.0.0.1:8000/groups", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      name: groupName
+    })
   });
 
-  currentGroupIndex = groups.length - 1;
-  currentCardIndex = 0;
-  showingAnswer = false;
   groupNameInput.value = "";
-  addGroupPanel.classList.add("hidden");
+  addGroupPanel.classList.add("hidden")
 
-  renderGroupList();
-  renderStudyCard();
-  renderListView();
+  //reload groups from backend
+   loadGroups();
+
   showView(listView);
 });
 
@@ -381,7 +433,27 @@ removeGroupBtn.addEventListener("click", () => {
   }
 
   openConfirmModal(`Delete group "${groups[currentGroupIndex].name}"?`, () => {
-    groups.splice(currentGroupIndex, 1);
+   removeGroupBtn.addEventListener("click", () => {
+  if (groups.length === 1) {
+    alert("At least one group must remain.");
+    return;
+  }
+
+  openConfirmModal(`Delete group "${groups[currentGroupIndex].name}"?`, async () => {
+    const groupId = groups[currentGroupIndex].id;
+
+    await fetch(`http://127.0.0.1:8000/groups/${groupId}`, {
+      method: "DELETE"
+    });
+
+    currentGroupIndex = 0;
+    currentCardIndex = 0;
+    showingAnswer = false;
+
+    loadGroups();
+    showView(studyView);
+  });
+});
     currentGroupIndex = 0;
     currentCardIndex = 0;
     showingAnswer = false;
@@ -397,3 +469,31 @@ renderGroupList();
 renderStudyCard();
 renderListView();
 showView(studyView);
+
+// link backend and frontend
+async function loadGroups() {
+  const response = await fetch("http://127.0.0.1:8000/groups");
+  const data = await response.json();
+
+  // backend data exchange to frontend
+  groups = data.map((g, index) => ({
+    id: g.id,
+    name: g.name,
+    colorClass: groupColors[index % groupColors.length],
+    cards: []
+  }));
+
+  renderGroupList();
+  renderStudyCard();
+  renderListView();
+}
+
+loadGroups();
+
+// Load cards for selected group
+async function loadCards(groupId) {
+  const response = await fetch(`http://127.0.0.1:8000/groups/${groupId}/cards`);
+  const data = await response.json();
+
+  groups[currentGroupIndex].cards = data;
+}

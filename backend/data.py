@@ -78,7 +78,7 @@ def delete_group(group_id): #delete a group
     cursor.execute("SELECT * FROM groups WHERE id = ?", (group_id,))
     existing_group = cursor.fetchone()
 
-    if not existing_group: #keep at least one group 
+    if not existing_group: #group not found
         conn.close()
         return False
 
@@ -90,9 +90,9 @@ def delete_group(group_id): #delete a group
     return True
 
 
-# ----------Card CRUD 13002781-------------
+# ----------Card CRUD 13002718-------------
 
-def get_cards_by_group(group_id): #get all group from data 
+def get_cards_by_group(group_id): #get all group card from data 
    
     conn = get_connection()
     cursor = conn.cursor()
