@@ -519,3 +519,37 @@ button:active {
     transform: translateX(2px);
   }
 }
+
+/* Card in & out animation */
+
+.flashcard.slide-out-up {
+  animation: slideOutUpFade 0.45s ease forwards;
+}
+
+.flashcard.fade-in-card {
+  animation: fadeInCaed 0.3s ease;
+}
+
+@keyframes slideOutUpFade {
+  0%{
+    transform: translateY(0px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-70px);
+    opacity:0;
+  }
+}
+
+/*animation of card in */
+
+@keyframes fadeInCard{
+  0% {
+    transform: translateY(18px);
+    opacity: 0;
+  }
+  100%{
+    transform: translateY(0);
+    opacity: 1;
+  } 
+}

@@ -358,6 +358,36 @@ function flipCard() {
   }, 600);
 }
 
+// next-card animation and switch to the next card
+function playNextCardAnimation() {
+  if (groups.length === 0) return;
+
+  const currentGroup = groups[currentGroupIndex];
+  if (currentGroup.cards.length === 0 || isFlipping) return;
+
+  // Prevent repeated clicks during animation
+  isFlipping = true;
+
+  // Add slide-out animation class
+  flashcard.classList.add("slide-out-up");
+
+  setTimeout(() => {
+    // Switch to next card after animation
+    currentCardIndex++;
+    showingAnswer = false;
+    renderStudyCard();
+
+    // Remove old animation and add fade-in animation
+    flashcard.classList.remove("slide-out-up");
+    flashcard.classList.add("fade-in-card");
+
+    setTimeout(() => {
+      flashcard.classList.remove("fade-in-card");
+      isFlipping = false;
+    }, 300);
+  }, 450);
+}
+
 flashcard.addEventListener("click", flipCard);
 
 editSetBtn.addEventListener("click", () => {
@@ -450,16 +480,16 @@ prevBtn.addEventListener("click", () => {
   }
 });
 
+// Go to next card with slide-up transition
 nextBtn.addEventListener("click", () => {
   if (groups.length === 0) return;
 
   const currentGroup = groups[currentGroupIndex];
   if (currentGroup.cards.length === 0) return;
 
+  // Only play animation if there is a next card
   if (currentCardIndex < currentGroup.cards.length - 1) {
-    currentCardIndex++;
-    showingAnswer = false;
-    renderStudyCard();
+    playNextCardAnimation();
   }
 });
 
