@@ -24,7 +24,7 @@
 
       <!-- groups -->
       <div class="group-list" id="groupList">
-        <button class="group-item active">
+        <button type="button" class="group-item active">
           <span class="group-name">Group 1</span>
           <span class="group-color group-color-1"></span>
         </button>
@@ -32,15 +32,15 @@
 
       <!-- group buttons -->
       <div class="sidebar-actions">
-        <button id="addGroupBtn">Add Group</button>
-        <button id="removeGroupBtn">Remove Group</button>
+        <button type="button" id="addGroupBtn">Add Group</button>
+        <button type="button" id="removeGroupBtn">Remove Group</button>
       </div>
 
       <!-- add group -->
       <div class="add-group-panel hidden" id="addGroupPanel">
         <label for="groupNameInput">Group name:</label>
         <input type="text" id="groupNameInput" placeholder="Enter group name">
-        <button id="doneAddGroupBtn">Done</button>
+        <button type="button" id="doneAddGroupBtn">Done</button>
       </div>
     </aside>
 
@@ -50,7 +50,7 @@
       <!-- study -->
       <section id="studyView">
         <div class="top-bar">
-          <button id="editSetBtn">Edit</button>
+          <button type="button" id="editSetBtn">Edit</button>
         </div>
 
         <!-- card -->
@@ -62,9 +62,9 @@
           
           <!-- controls -->
           <div class="bottom-bar">
-            <button id="prevBtn">Previous</button>
+            <button type="button" id="prevBtn">Previous</button>
             <span id="progressText">1 of 1</span>
-            <button id="nextBtn">Next</button>
+            <button type="button" id="nextBtn">Next</button>
           </div>
         </div>
       </section>
@@ -72,8 +72,8 @@
       <!-- list -->
       <section class="hidden" id="listView">
         <div class="top-bar">
-          <button id="backFromListBtn">Back</button>
-          <button id="addCardBtn">Add</button>
+          <button type="button" id="backFromListBtn">Back</button>
+          <button type="button" id="addCardBtn">Add</button>
         </div>
 
         <!-- list items -->
@@ -81,8 +81,8 @@
           <div class="question-item">
             <span>Q1 : What is xxxx</span>
             <div>
-              <button>Edit</button>
-              <button class="delete-btn">Delete</button>
+              <button type="button">Edit</button>
+              <button type="button" class="delete-btn">Delete</button>
             </div>
           </div>
         </div>
@@ -91,8 +91,8 @@
       <!-- add card -->
       <section class="hidden" id="addCardView">
         <div class="top-bar">
-          <button id="backFromAddBtn">Back</button>
-          <button id="doneAddCardBtn">Done</button>
+          <button type="button" id="backFromAddBtn">Back</button>
+          <button type="button" id="doneAddCardBtn">Done</button>
         </div>
 
         <!-- form -->
@@ -116,8 +116,8 @@
         <p class="modal-message" id="modalMessage">Are you sure you want to delete this item?</p>
 
         <div class="modal-actions">
-          <button class="modal-btn modal-cancel" id="modalCancelBtn">Cancel</button>
-          <button class="modal-btn modal-confirm" id="modalConfirmBtn">Delete</button>
+          <button type="button" class="modal-btn modal-cancel" id="modalCancelBtn">Cancel</button>
+          <button type="button" class="modal-btn modal-confirm" id="modalConfirmBtn">Delete</button>
         </div>
       </div>
     </div>
@@ -125,7 +125,7 @@
   </div>
 
   <!-- js -->
-  <script src="js/script.js"></script>
+  <script src="js/script.js?v=3"></script>
 
 </body>
 </html>
