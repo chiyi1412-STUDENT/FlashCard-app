@@ -1,19 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- responsive -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Flashcard App</title>
-  <link rel="stylesheet" href="css/style.css">
+
+  <!-- css -->
+  <link rel="stylesheet" href="css/style.css"> 
 </head>
+
 <body>
+
+  <!-- app -->
   <div class="app-container">
 
+    <!-- sidebar -->
     <aside class="sidebar">
       <h1 class="sidebar-title">Flashcard</h1>
 
+      <!-- line -->
       <div class="sidebar-divider"></div>
 
+      <!-- groups -->
       <div class="group-list" id="groupList">
         <button class="group-item active">
           <span class="group-name">Group 1</span>
@@ -21,11 +30,13 @@
         </button>
       </div>
 
+      <!-- group buttons -->
       <div class="sidebar-actions">
         <button id="addGroupBtn">Add Group</button>
         <button id="removeGroupBtn">Remove Group</button>
       </div>
 
+      <!-- add group -->
       <div class="add-group-panel hidden" id="addGroupPanel">
         <label for="groupNameInput">Group name:</label>
         <input type="text" id="groupNameInput" placeholder="Enter group name">
@@ -33,19 +44,23 @@
       </div>
     </aside>
 
+    <!-- main -->
     <main class="main-content">
 
+      <!-- study -->
       <section id="studyView">
         <div class="top-bar">
           <button id="editSetBtn">Edit</button>
         </div>
 
+        <!-- card -->
         <div class="view-center">
           <div class="flashcard" id="flashcard">
             <p id="cardLabel">Q1:</p>
             <p id="cardText">What is xxxx</p>
           </div>
-
+          
+          <!-- controls -->
           <div class="bottom-bar">
             <button id="prevBtn">Previous</button>
             <span id="progressText">1 of 1</span>
@@ -54,12 +69,14 @@
         </div>
       </section>
 
+      <!-- list -->
       <section class="hidden" id="listView">
         <div class="top-bar">
           <button id="backFromListBtn">Back</button>
           <button id="addCardBtn">Add</button>
         </div>
 
+        <!-- list items -->
         <div id="questionListPanel">
           <div class="question-item">
             <span>Q1 : What is xxxx</span>
@@ -71,12 +88,14 @@
         </div>
       </section>
 
+      <!-- add card -->
       <section class="hidden" id="addCardView">
         <div class="top-bar">
           <button id="backFromAddBtn">Back</button>
           <button id="doneAddCardBtn">Done</button>
         </div>
 
+        <!-- form -->
         <div class="view-center">
           <div class="card-form">
             <label for="questionInput">Question:</label>
@@ -90,7 +109,7 @@
 
     </main>
 
-    <!-- Custom Confirm Modal -->
+    <!-- modal -->
     <div class="modal-overlay hidden" id="confirmModal">
       <div class="modal-box">
         <h3 class="modal-title">Confirm Deletion</h3>
@@ -105,6 +124,8 @@
 
   </div>
 
+  <!-- js -->
   <script src="js/script.js"></script>
+
 </body>
 </html>

@@ -30,6 +30,7 @@ Flashcard Web App - Frontend Logic Structure
    - closeConfirmModal()
 */
 
+// Get main view sections
 const studyView = document.getElementById("studyView");
 const listView = document.getElementById("listView");
 const addCardView = document.getElementById("addCardView");
@@ -72,6 +73,7 @@ const groupColors = [
   "group-color-4"
 ];
 
+// Store all groups and current state
 let groups = [];
 
 let currentGroupIndex = 0;
@@ -94,6 +96,8 @@ function updateCardHint() {
     flashcard.classList.remove("answer-mode");
   }
 }
+
+// Switch between different views
 
 function showView(view) {
   studyView.classList.add("hidden");
@@ -128,6 +132,8 @@ confirmModal.addEventListener("click", (event) => {
   }
 });
 
+// Load all groups from backend
+
 async function loadGroups() {
   const response = await fetch("http://127.0.0.1:8000/groups");
   const data = await response.json();
@@ -159,6 +165,7 @@ async function loadGroups() {
   renderListView();
 }
 
+// Load cards of a specific group
 async function loadCards(groupId) {
   const response = await fetch(`http://127.0.0.1:8000/groups/${groupId}/cards`);
   const data = await response.json();
@@ -170,6 +177,7 @@ async function loadCards(groupId) {
   }
 }
 
+// Render group list on the left panel
 function renderGroupList() {
   groupList.innerHTML = "";
 
@@ -213,6 +221,7 @@ function renderGroupList() {
   });
 }
 
+// Display current card Q&A
 function renderStudyCard() {
   if (groups.length === 0) {
     cardLabel.textContent = "No Group";
@@ -324,7 +333,7 @@ function renderListView() {
 
         showingAnswer = false;
         renderStudyCard();
-        renderListView();
+        showView(listView);
       });
     });
 
@@ -337,6 +346,8 @@ function renderListView() {
     questionListPanel.appendChild(item);
   });
 }
+
+// Card animation
 
 function flipCard() {
   if (groups.length === 0) return;
@@ -458,11 +469,13 @@ doneAddCardBtn.addEventListener("click", async () => {
 
   editCardIndex = null;
   showingAnswer = false;
-  currentCardIndex = 0;
 
   await loadCards(groupId);
 
-  renderStudyCard();
+  questionInput.value = "";
+  answerInput.value = "";
+
+
   renderListView();
   showView(listView);
 });
